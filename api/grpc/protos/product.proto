@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+option go_package = "./product";
+
+message ValidateStockRequest {
+  int64 id = 1;
+}
+
+message ValidateStockResponse {
+  bool success_take_stock = 1;
+  int64 id = 2;
+  string product_name = 3;
+  int64 price = 4;
+}
+
+service ProductStock {
+  rpc ValidateStockForATC(ValidateStockRequest) returns (ValidateStockResponse);
+}
