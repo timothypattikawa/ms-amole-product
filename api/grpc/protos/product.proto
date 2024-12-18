@@ -4,6 +4,7 @@ option go_package = "./product";
 
 message ValidateStockRequest {
   int64 id = 1;
+  int64 qtyStock = 2;
 }
 
 message ValidateStockResponse {
