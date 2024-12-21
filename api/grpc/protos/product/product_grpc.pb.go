@@ -19,14 +19,16 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	ProductStock_ValidateStockForATC_FullMethodName = "/ProductStock/ValidateStockForATC"
+	ProductStock_TakeStockForATC_FullMethodName = "/ProductStock/TakeStockForATC"
+	ProductStock_ProductInfo_FullMethodName     = "/ProductStock/ProductInfo"
 )
 
 // ProductStockClient is the client API for ProductStock service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ProductStockClient interface {
-	ValidateStockForATC(ctx context.Context, in *ValidateStockRequest, opts ...grpc.CallOption) (*ValidateStockResponse, error)
+	TakeStockForATC(ctx context.Context, in *TakeStockForATCkRequest, opts ...grpc.CallOption) (*TakeStockForATCResponse, error)
+	ProductInfo(ctx context.Context, in *ProductRequest, opts ...grpc.CallOption) (*ProductResponse, error)
 }
 
 type productStockClient struct {
@@ -37,10 +39,20 @@ func NewProductStockClient(cc grpc.ClientConnInterface) ProductStockClient {
 	return &productStockClient{cc}
 }
 
-func (c *productStockClient) ValidateStockForATC(ctx context.Context, in *ValidateStockRequest, opts ...grpc.CallOption) (*ValidateStockResponse, error) {
+func (c *productStockClient) TakeStockForATC(ctx context.Context, in *TakeStockForATCkRequest, opts ...grpc.CallOption) (*TakeStockForATCResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ValidateStockResponse)
-	err := c.cc.Invoke(ctx, ProductStock_ValidateStockForATC_FullMethodName, in, out, cOpts...)
+	out := new(TakeStockForATCResponse)
+	err := c.cc.Invoke(ctx, ProductStock_TakeStockForATC_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *productStockClient) ProductInfo(ctx context.Context, in *ProductRequest, opts ...grpc.CallOption) (*ProductResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ProductResponse)
+	err := c.cc.Invoke(ctx, ProductStock_ProductInfo_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -51,7 +63,8 @@ func (c *productStockClient) ValidateStockForATC(ctx context.Context, in *Valida
 // All implementations must embed UnimplementedProductStockServer
 // for forward compatibility.
 type ProductStockServer interface {
-	ValidateStockForATC(context.Context, *ValidateStockRequest) (*ValidateStockResponse, error)
+	TakeStockForATC(context.Context, *TakeStockForATCkRequest) (*TakeStockForATCResponse, error)
+	ProductInfo(context.Context, *ProductRequest) (*ProductResponse, error)
 	mustEmbedUnimplementedProductStockServer()
 }
 
@@ -62,8 +75,11 @@ type ProductStockServer interface {
 // pointer dereference when methods are called.
 type UnimplementedProductStockServer struct{}
 
-func (UnimplementedProductStockServer) ValidateStockForATC(context.Context, *ValidateStockRequest) (*ValidateStockResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ValidateStockForATC not implemented")
+func (UnimplementedProductStockServer) TakeStockForATC(context.Context, *TakeStockForATCkRequest) (*TakeStockForATCResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method TakeStockForATC not implemented")
+}
+func (UnimplementedProductStockServer) ProductInfo(context.Context, *ProductRequest) (*ProductResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ProductInfo not implemented")
 }
 func (UnimplementedProductStockServer) mustEmbedUnimplementedProductStockServer() {}
 func (UnimplementedProductStockServer) testEmbeddedByValue()                      {}
@@ -86,20 +102,38 @@ func RegisterProductStockServer(s grpc.ServiceRegistrar, srv ProductStockServer)
 	s.RegisterService(&ProductStock_ServiceDesc, srv)
 }
 
-func _ProductStock_ValidateStockForATC_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ValidateStockRequest)
+func _ProductStock_TakeStockForATC_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TakeStockForATCkRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ProductStockServer).ValidateStockForATC(ctx, in)
+		return srv.(ProductStockServer).TakeStockForATC(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ProductStock_ValidateStockForATC_FullMethodName,
+		FullMethod: ProductStock_TakeStockForATC_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ProductStockServer).ValidateStockForATC(ctx, req.(*ValidateStockRequest))
+		return srv.(ProductStockServer).TakeStockForATC(ctx, req.(*TakeStockForATCkRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ProductStock_ProductInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ProductRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProductStockServer).ProductInfo(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ProductStock_ProductInfo_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProductStockServer).ProductInfo(ctx, req.(*ProductRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -112,8 +146,12 @@ var ProductStock_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*ProductStockServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "ValidateStockForATC",
-			Handler:    _ProductStock_ValidateStockForATC_Handler,
+			MethodName: "TakeStockForATC",
+			Handler:    _ProductStock_TakeStockForATC_Handler,
+		},
+		{
+			MethodName: "ProductInfo",
+			Handler:    _ProductStock_ProductInfo_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -12,6 +12,9 @@ database:
     max-conn: 100
     max-life-time: 12s
     keep-alive-interval: 20s
+  redis:
+    addr: "localhost:"
+    password: ""
 security:
   jwt:
     secret: "acret123-812xliasfekaltasfesa231"

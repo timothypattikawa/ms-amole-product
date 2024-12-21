@@ -1,13 +1,20 @@
 package main
 
 import (
+	"log"
+	"net"
+	"os"
+
 	"github.com/labstack/echo/v4"
 	"github.com/timothypattikawa/amole-services/product-service/api"
+	pb "github.com/timothypattikawa/amole-services/product-service/api/grpc/protos/product"
+	rpcServer "github.com/timothypattikawa/amole-services/product-service/api/grpc/server"
 	"github.com/timothypattikawa/amole-services/product-service/internal/config"
 	"github.com/timothypattikawa/amole-services/product-service/internal/handler"
 	"github.com/timothypattikawa/amole-services/product-service/internal/repository"
+	"github.com/timothypattikawa/amole-services/product-service/internal/repository/rd"
 	"github.com/timothypattikawa/amole-services/product-service/internal/service"
-	"os"
+	"google.golang.org/grpc"
 )
 
 func main() {
@@ -16,9 +23,22 @@ func main() {
 	newConfig := config.NewConfig(v)
 	dbConnection := newConfig.NewDatabaseConfig("postgres").GetDbConnection()
 
-	productRepository := repository.NewProductRepository(dbConnection)
+	redisClient := rd.NewRedisConfig(v).GetClient()
+
+	productRepository := repository.NewProductRepository(dbConnection, redisClient)
+
 	productService := service.NewProductService(v, productRepository)
 	productHandler := handler.NewProductHandler(productService)
+
+	listen, err := net.Listen("tcp", ":"+v.GetString("service.port-grpc"))
+	if err != nil {
+		log.Fatalf("error when listen for rpc err::{%v}", err.Error())
+	}
+
+	grpcServer := grpc.NewServer()
+	pb.RegisterProductStockServer(grpcServer, rpcServer.NewServerProductRPC(productRepository))
+
+	grpcServer.Serve(listen)
 
 	api.RunServer(func(e *echo.Echo) {
 		handler.Handler(e, productHandler)
