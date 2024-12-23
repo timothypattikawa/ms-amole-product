@@ -66,7 +66,10 @@ func (p ProductRepositoryImplementation) GetProductStock(productId int64) (int64
 }
 
 func (p ProductRepositoryImplementation) UpdateProductStock(productId, stock int64) error {
-	err := p.rdc.Set(fmt.Sprintf("amole|stock|%v", productId), stock, -1).Err()
+	err := p.rdc.IncrBy(fmt.Sprintf("amole|stock|%v", productId), stock).Err()
+	if err != nil {
+		log.Printf("fail to update stock err{%v}", err)
+	}
 	return err
 }
 

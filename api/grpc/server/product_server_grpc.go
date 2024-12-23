@@ -17,6 +17,7 @@ type ProductServerGRPC struct {
 }
 
 func (psg *ProductServerGRPC) TakeStockForATC(ctx context.Context, req *pb.TakeStockForATCkRequest) (*pb.TakeStockForATCResponse, error) {
+	log.Printf("incoming request to TakeStockForATC req{%v}", req)
 	var product postgres.TbAmoleProduct
 	err := psg.pr.Exec(ctx, func(q *postgres.Queries) error {
 		result, err := q.GetProductById(ctx, req.GetId())
@@ -35,15 +36,22 @@ func (psg *ProductServerGRPC) TakeStockForATC(ctx context.Context, req *pb.TakeS
 	if err != nil {
 		return nil, err
 	}
+
+	err = psg.pr.UpdateProductStock(req.Id, req.UserCartStockQty)
+	if err != nil {
+		return nil, status.New(codes.NotFound, "out of stock").Err()
+	}
+
 	if stock < req.QtyStock {
 		log.Printf("error cause out of stock product{%v} stock{%v}", req.Id, req.QtyStock)
 		return nil, status.New(codes.NotFound, "out of stock").Err()
 	} else {
-		err = psg.pr.UpdateProductStock(req.Id, stock-req.QtyStock)
+		err = psg.pr.UpdateProductStock(req.Id, -req.QtyStock)
 		if err != nil {
 			return nil, status.New(codes.NotFound, "out of stock").Err()
 		}
 
+		log.Println("Success to update product stock")
 		return &pb.TakeStockForATCResponse{
 			SuccessTakeStock: true,
 			Id:               product.TbapID,
@@ -54,6 +62,7 @@ func (psg *ProductServerGRPC) TakeStockForATC(ctx context.Context, req *pb.TakeS
 }
 
 func (psg *ProductServerGRPC) ProductInfo(ctx context.Context, req *pb.ProductRequest) (*pb.ProductResponse, error) {
+	log.Printf("incoming request to product Info req{%v}", req)
 	var product postgres.TbAmoleProduct
 	err := psg.pr.Exec(ctx, func(q *postgres.Queries) error {
 		result, err := q.GetProductById(ctx, req.GetTbapID())
