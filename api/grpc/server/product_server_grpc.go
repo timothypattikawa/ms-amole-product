@@ -82,6 +82,17 @@ func (psg *ProductServerGRPC) ProductInfo(ctx context.Context, req *pb.ProductRe
 	}, err
 }
 
+func (psg *ProductServerGRPC) PutBackStock(ctx context.Context, req *pb.PutStockkRequest) (*pb.PutStockResponse, error) {
+	err := psg.pr.UpdateProductStock(req.Id, req.QtyStock)
+	if err != nil {
+		log.Printf("fail put back product stock err{%v}", err)
+		return nil, status.New(codes.Canceled, "fail put back product stock").Err()
+	}
+	return &pb.PutStockResponse{
+		SuccessTakeStock: true,
+	}, nil
+}
+
 func NewServerProductRPC(pr repository.ProductRepository) *ProductServerGRPC {
 	return &ProductServerGRPC{
 		pr: pr,
