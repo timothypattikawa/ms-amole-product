@@ -12,7 +12,7 @@ import (
 	"github.com/timothypattikawa/amole-services/product-service/internal/config"
 	"github.com/timothypattikawa/amole-services/product-service/internal/handler"
 	"github.com/timothypattikawa/amole-services/product-service/internal/repository"
-	"github.com/timothypattikawa/amole-services/product-service/internal/repository/rd"
+	rd "github.com/timothypattikawa/amole-services/product-service/internal/repository/rds"
 	"github.com/timothypattikawa/amole-services/product-service/internal/service"
 	"google.golang.org/grpc"
 )
@@ -21,7 +21,7 @@ func main() {
 	env := os.Getenv("ENV")
 	v := config.LoadViper(env)
 	newConfig := config.NewConfig(v)
-	dbConnection := newConfig.NewDatabaseConfig("postgres").GetDbConnection()
+	dbConnection := newConfig.NewDatabaseConfig("postgres").GetDbConnection(env)
 
 	redisClient := rd.NewRedisConfig(v).GetClient()
 

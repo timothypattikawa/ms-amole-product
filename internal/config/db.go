@@ -3,10 +3,11 @@ package config
 import (
 	"context"
 	"fmt"
-	"github.com/jackc/pgx/v5/pgxpool"
 	"log"
 	"net/url"
 	"time"
+
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type DatabasePoolConf struct {
@@ -25,7 +26,7 @@ type DatabaseConfiguration struct {
 	DatabasePoolConf
 }
 
-func (dc *DatabaseConfiguration) dbConnectionUrl() string {
+func (dc *DatabaseConfiguration) dbConnectionUrl(env string) string {
 	u := url.URL{
 		Scheme: "postgres",
 		Host:   fmt.Sprintf("%s:%d", dc.host, dc.port),
@@ -33,15 +34,18 @@ func (dc *DatabaseConfiguration) dbConnectionUrl() string {
 		Path:   dc.database,
 	}
 
-	values := url.Values{}
-	values.Add("sslmode", "disable")
-	u.RawQuery = values.Encode()
+	if env == "development" {
+		values := url.Values{}
+		values.Add("sslmode", "disable")
+		u.RawQuery = values.Encode()
+	}
 
 	return u.String()
 }
 
-func (dc *DatabaseConfiguration) GetDbConnection() *pgxpool.Pool {
-	connectionUrl := dc.dbConnectionUrl()
+func (dc *DatabaseConfiguration) GetDbConnection(env string) *pgxpool.Pool {
+
+	connectionUrl := dc.dbConnectionUrl(env)
 	log.Printf("Connecting to database at %s", connectionUrl)
 	ctx, cancelFunc := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancelFunc()
