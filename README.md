@@ -13,7 +13,6 @@ I'm using docker for the database
     - make postgres (for create container docker for postgres)
     - make createdb (for create db on the container)
     - make migrateup (for migrate all migrations file to database)
-    - make proto (for make proto product and cart)
     - make redis-product (for make redis container)
 2. Add stock for product in redis-product conainer with patern like "amole|stock|{id_product}" and out the stock
 3. Using MOCK_DATA1.csv or MOCK_DATA2.csv for import to table product
